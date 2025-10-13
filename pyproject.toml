@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neuralizard"
+version = "0.1.0"
+description = "An AI tool that learns how you use AI, so you don't have to."
+authors = [{ name="Your Name", email="you@example.com" }]
+requires-python = ">=3.9"
+dependencies = [
+    "typer",
+    "rich",
+    "pydantic-settings",
+    "SQLAlchemy",
+    "requests",
+    "python-dotenv",
+]
+
+[project.scripts]
+neuralizard = "neuralizard.cli:app"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
