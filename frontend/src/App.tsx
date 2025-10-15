@@ -89,10 +89,13 @@ export default function App() {
       />
 
       {/* Make inset take full width/height */}
-      <SidebarInset className="flex min-h-screen w-full flex-col">
+      <SidebarInset className="flex min-h-screen w-full flex-col pt-16">
         <AppHeader wsConnecting={wsConnecting} wsConnected={wsConnected} />
 
-        <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-neutral-50">
+        <div
+          ref={listRef}
+          className="flex-1 overflow-y-auto p-4 pb-28 space-y-4 bg-neutral-50"
+        >
           <ChatMessages
             messages={messages as any}
             streaming={streaming}
@@ -101,15 +104,17 @@ export default function App() {
           />
         </div>
 
-        <ChatInput
-          value={prompt}
-          onChange={(v) => d(setPrompt(v))}
-          onSubmit={() => submit()}
-          onStop={() => d(stopStreamAction())}
-          streaming={streaming}
-          wsConnecting={wsConnecting}
-          wsConnected={wsConnected}
-        />
+        <div className="sticky bottom-0 z-10 bg-white">
+          <ChatInput
+            value={prompt}
+            onChange={(v) => d(setPrompt(v))}
+            onSubmit={() => submit()}
+            onStop={() => d(stopStreamAction())}
+            streaming={streaming}
+            wsConnecting={wsConnecting}
+            wsConnected={wsConnected}
+          />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

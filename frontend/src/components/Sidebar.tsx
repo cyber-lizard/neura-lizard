@@ -107,7 +107,6 @@ export function Sidebar({
       </SidebarContent>
 
       <SidebarFooter className="text-xs text-muted-foreground">
-        Neuralizard
       </SidebarFooter>
 
       <SidebarRail />
