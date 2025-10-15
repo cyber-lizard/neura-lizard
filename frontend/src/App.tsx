@@ -22,7 +22,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import ChatInput from "./components/ChatInput"
-import lizardImg from "@/assets/images/lizard.png"
+import { AppHeader } from "./components/AppHeader"
 
 export default function App() {
   const d = useAppDispatch()
@@ -90,18 +90,7 @@ export default function App() {
 
       {/* Make inset take full width/height */}
       <SidebarInset className="flex min-h-screen w-full flex-col">
-        <header className="p-4 border-b flex flex-wrap items-center gap-3">
-          <SidebarTrigger className="-ml-1 mr-1 md:hidden" />
-          <img src={lizardImg} alt="Neuralizard" className="h-10 w-10" />
-          <h1 className="text-xl font-semibold">Neuralizard Chat</h1>
-          <span className="text-xs text-neutral-500">
-            {wsConnecting ? "Connecting..." : wsConnected ? "Connected" : "Disconnected"}
-          </span>
-          <div className="flex items-center gap-2 ml-auto">
-            <label className="text-xs text-neutral-600">Provider</label>
-            <ProviderSelect />
-          </div>
-        </header>
+        <AppHeader wsConnecting={wsConnecting} wsConnected={wsConnected} />
 
         <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-neutral-50">
           <ChatMessages
