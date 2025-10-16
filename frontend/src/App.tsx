@@ -1,4 +1,3 @@
-import { ProviderSelect } from "./components/ProviderSelect"
 import { Sidebar as ChatSidebar, StoredConversation } from "./components/Sidebar"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import ChatMessages from "./components/ChatMessages"

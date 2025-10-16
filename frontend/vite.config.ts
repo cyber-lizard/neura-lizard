@@ -1,9 +1,14 @@
 import { defineConfig } from "vitest/config"
 import react from "@vitejs/plugin-react"
 import path from "path"
+import faviconsPlugin, { faviconsPluginBuild } from "./scripts/vite-favicons-plugin"
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    faviconsPlugin({ src: "src/assets/images/t.png" }),
+    faviconsPluginBuild({ src: "src/assets/images/t.png" }),
+  ],
   server: { port: 5173 },
   resolve: {
     alias: {
