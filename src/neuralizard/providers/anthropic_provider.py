@@ -26,16 +26,19 @@ class AnthropicProvider(StreamingProviderMixin):
     # 🔹 Single complete
     # ============================================================
 
-    def complete(self, prompt: str, model: str | None = None, temperature: float | None = None):
+    def complete(self, prompt: str, model: str | None = None, temperature: float | None = None, **kwargs):
         """Send a single prompt to the Claude API."""
         chosen_model = model or self.default_model
         t0 = time.time()
 
+        max_tokens = kwargs.get("max_tokens", 1024)
+        temp = temperature if temperature is not None else kwargs.get("temperature", 0.7)
+
         try:
             resp = self.client.messages.create(
                 model=chosen_model,
-                max_tokens=kwargs.get("max_tokens", 1024),
-                temperature=kwargs.get("temperature", 0.7),
+                max_tokens=max_tokens,
+                temperature=temp,
                 messages=[{"role": "user", "content": prompt}],
             )
         except Exception as e:

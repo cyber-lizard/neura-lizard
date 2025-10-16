@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = Field(default=None, alias="MISTRAL_API_KEY")
     cohere_api_key: str | None = Field(default=None, alias="COHERE_API_KEY")
     xai_api_key: str | None = Field(default=None, alias="XAI_API_KEY")
+    deepseek_api_key: str | None = Field(default=None, env="DEEPSEEK_API_KEY")
 
     model_config = SettingsConfigDict(
         env_file=str(APP_DIR / ".env"),
