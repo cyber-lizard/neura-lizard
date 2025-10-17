@@ -210,6 +210,11 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
           break
         case "conversation":
           if (Array.isArray(msg.messages)) {
+            // Take provider/model from the last message that has them
+            const lastWithProv = [...msg.messages].reverse().find((m: any) => m?.provider || m?.model)
+            if (lastWithProv?.provider) dispatch(setProvider(String(lastWithProv.provider)))
+            if (lastWithProv?.model) dispatch(setModel(String(lastWithProv.model)))
+
             const mapped = msg.messages.map((m: any) => ({
               id: m.id,
               role: m.role as ChatMessage["role"],
