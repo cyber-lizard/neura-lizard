@@ -109,3 +109,23 @@ class PerplexityProvider(StreamingProviderMixin):
             )
         except Exception as e:
             return SimpleResult(text="", model=chosen_model, usage={}, raw={"error": str(e)})
+
+    def list_models(self) -> list[str]:
+        """
+        List available Perplexity model ids via the official SDK client.
+        """
+        try:
+            resp = self.client.models.list()
+            items = getattr(resp, "data", resp)
+            names: list[str] = []
+            if isinstance(items, (list, tuple)):
+                for m in items:
+                    mid = getattr(m, "id", None)
+                    if isinstance(mid, str) and mid:
+                        names.append(mid)
+            # ensure default present
+            if getattr(self, "default_model", None):
+                names.append(self.default_model)
+            return sorted({n for n in names if isinstance(n, str) and n})
+        except Exception:
+            return [self.default_model] if getattr(self, "default_model", None) else []

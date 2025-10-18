@@ -4,7 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from neuralizard.providers import get_provider, get_available_providers
+from neuralizard.providers import get_provider, get_available_providers, get_provider_models
 from neuralizard.db import (
     create_conversation,
     add_message,
@@ -90,6 +90,7 @@ async def chat_ws(ws: WebSocket):
 
     async def maybe_create_title(first_user: str, assistant_text: str, provider_name: str, model: str | None, cid: uuid.UUID):
         # Only try if no title in DB yet
+
         with session() as s:
             db_conv = s.get(Conversation, cid)
             if not db_conv or db_conv.title:
@@ -210,28 +211,12 @@ async def chat_ws(ws: WebSocket):
                                 "default_model": c.default_model,
                                 "message_count": len(conv_msgs),
                                 "last_message_preview": preview,
-                                "messages": [
-                                    {
-                                        "id": m.id,
-                                        "role": m.role,
-                                        "content": m.content,
-                                        "provider": m.provider,
-                                        "model": m.model,
-                                        "created_at": m.created_at.isoformat(),
-                                        "latency_ms": m.latency_ms,
-                                        "first_token_ms": m.first_token_ms,
-                                        "error": m.error,
-                                        "prompt_tokens": m.prompt_tokens,
-                                        "response_tokens": m.response_tokens,
-                                    }
-                                    for m in conv_msgs
-                                ],
                             }
                         )
                 await ws.send_json({"type": "history", "items": items, "offset": offset, "limit": limit})
                 continue
 
-            if t in ("conversation", "conversation_detail"):
+            if t == "conversation" or t == "conversation_detail":
                 cid = data.get("id") or data.get("conversation_id")
                 if not cid:
                     await ws.send_json({"type": "error", "error": "Missing conversation id"})
@@ -280,6 +265,23 @@ async def chat_ws(ws: WebSocket):
 
             if t == "providers" or data.get("action") == "providers":
                 await ws.send_json({"type": "providers", "providers": get_available_providers()})
+                continue
+
+            # Fetch models for a provider (with optional refresh to bypass cache)
+            if t == "models" or data.get("action") == "models":
+                prov_name = (data.get("provider") or current_provider or "").lower().strip()
+                refresh = bool(data.get("refresh", False))
+                if not prov_name:
+                    await ws.send_json({"type": "error", "error": "Missing provider"})
+                    continue
+                if prov_name not in get_available_providers():
+                    await ws.send_json({"type": "error", "error": f"Provider not available: {prov_name}"})
+                    continue
+                try:
+                    models = get_provider_models(prov_name, use_cache=not refresh)
+                    await ws.send_json({"type": "models", "provider": prov_name, "models": models})
+                except Exception as e:
+                    await ws.send_json({"type": "error", "error": f"Model list failed: {e}"})
                 continue
 
             if t == "set_provider":

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "../hooks"
-import { setProvider } from "../store/chatSlice"
+import { setProviderAndFetch } from "../store/chatSlice"
 
 // shadcn/ui components (ensure added via: npx shadcn-ui add button popover command scroll-area)
 import { Button } from "@/components/ui/button"
@@ -40,12 +40,12 @@ export function ProviderSelect() {
 
   React.useEffect(() => {
     if (activeProvider && activeProvider !== provider) {
-      dispatch(setProvider(activeProvider))
+      dispatch(setProviderAndFetch(activeProvider))
     }
   }, [activeProvider]) // eslint-disable-line
 
   const selectProvider = (p: string) => {
-    dispatch(setProvider(p))
+    dispatch(setProviderAndFetch(p))
     setOpen(false)
     setSearch("")
     // If you want immediate backend notification:

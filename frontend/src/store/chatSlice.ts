@@ -29,6 +29,7 @@ type ChatState = {
   wsConnected: boolean
   error: string | null
   providers: string[]
+  models: string[]
   history: HistoryItem[]
   historyLoaded: boolean
   // NEW: track selected conversation
@@ -48,6 +49,7 @@ const initialState: ChatState = {
   wsConnected: false,
   error: null,
   providers: [],
+  models: [],
   history: [],
   historyLoaded: false,
   // NEW
@@ -100,6 +102,7 @@ const slice = createSlice({
     },
     finalizeAssistant(s) { s.currentAssistantId = null },
     setProviders(s, a: PayloadAction<string[]>) { s.providers = a.payload },
+    setModels(s, a: PayloadAction<string[]>) { s.models = Array.isArray(a.payload) ? a.payload : [] },
     historyReceived(state, action: PayloadAction<HistoryItem[]>) {
       state.history = action.payload
       state.historyLoaded = true
@@ -136,6 +139,32 @@ const slice = createSlice({
 // Module-level WebSocket (already present)
 const WS_URL = (import.meta as any).env.VITE_WS_URL || "ws://localhost:8001/chat/ws"
 let activeWS: WebSocket | null = null
+let pendingModelsRequest: { provider: string; refresh: boolean } | null = null
+
+// Fetch models for a provider over WS
+export const fetchModels = (provider?: string, refresh = false) =>
+  (dispatch: any, getState: () => { chat: ChatState }) => {
+    const prov = (provider || getState().chat.provider || "").trim()
+    if (!prov) return
+    if (activeWS && activeWS.readyState === WebSocket.OPEN) {
+      try {
+        activeWS.send(JSON.stringify({ type: "models", provider: prov, refresh }))
+      } catch {}
+    } else {
+      // queue the request until socket opens and ensure WS connects
+      pendingModelsRequest = { provider: prov, refresh }
+      dispatch(connectWS())
+    }
+  }
+
+// When provider changes, reset model and fetch new models
+export const setProviderAndFetch = (prov: string) => (dispatch: any) => {
+  dispatch(setProvider(prov))
+  // clear stale model+models before fetching
+  dispatch(setModel(null))
+  dispatch(setModels([]))
+  dispatch(fetchModels(prov, false)) // refresh to bypass cache
+}
 
 // init on page load (only connects & fetches providers)
 export const initWebSocket = () => (dispatch: any) => {
@@ -154,6 +183,11 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
     dispatch(wsOpen())
     // Fetch providers
     try { ws.send(JSON.stringify({ type: "providers" })) } catch {}
+    // flush any queued models request
+    if (pendingModelsRequest) {
+      try { ws.send(JSON.stringify({ type: "models", ...pendingModelsRequest })) } catch {}
+      pendingModelsRequest = null
+    }
     // Optionally request history on open:
     // try { ws.send(JSON.stringify({ type: "history", limit: 50, offset: 0 })) } catch {}
     // If a prompt already exists, send it
@@ -167,15 +201,36 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
       switch (msg.type) {
         case "info":
           break
-        case "providers":
+        case "providers": {
           if (Array.isArray(msg.providers)) {
             dispatch(setProviders(msg.providers))
             const { chat: latest } = getState()
-            if (msg.providers.length && !msg.providers.includes(latest.provider)) {
-              dispatch(setProvider(msg.providers[0]))
+            const chosen = msg.providers.includes(latest.provider)
+              ? latest.provider
+              : (msg.providers[0] || null)
+            // use the thunk so models are fetched
+            if (chosen) {
+              if (chosen !== latest.provider) {
+                dispatch(setProviderAndFetch(chosen))
+              } else {
+                dispatch(fetchModels(chosen)) // first load case
+              }
             }
           }
           break
+        }
+        case "models": {
+          if (Array.isArray(msg.models)) {
+            dispatch(slice.actions.setModels(msg.models))
+            const { chat: latest } = getState()
+            // Auto-select first model if none or invalid
+            if (!latest.model || !msg.models.includes(latest.model)) {
+              const first = msg.models[0] || null
+              dispatch(setModel(first || null))
+            }
+          }
+          break
+        }
         case "start":
           dispatch(startStreaming())
           dispatch(startAssistantMessage())
@@ -208,11 +263,16 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
             dispatch(slice.actions.historyReceived(msg.items))
           }
           break
-        case "conversation":
+        case "conversation": {
           if (Array.isArray(msg.messages)) {
             // Take provider/model from the last message that has them
             const lastWithProv = [...msg.messages].reverse().find((m: any) => m?.provider || m?.model)
-            if (lastWithProv?.provider) dispatch(setProvider(String(lastWithProv.provider)))
+            if (lastWithProv?.provider) {
+              const p = String(lastWithProv.provider)
+              dispatch(setProvider(p))
+              // ensure models for this provider are loaded
+              dispatch(fetchModels(p))
+            }
             if (lastWithProv?.model) dispatch(setModel(String(lastWithProv.model)))
 
             const mapped = msg.messages.map((m: any) => ({
@@ -223,6 +283,7 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
             dispatch(slice.actions.replaceMessages(mapped))
           }
           break
+        }
         case "conversation_title":
           if (typeof msg.id === "string" && typeof msg.title === "string") {
             // Use slice.actions directly to avoid missing symbol issues
@@ -382,14 +443,13 @@ export const {
   appendAssistantDelta,
   finalizeAssistant,
   setProviders,
+  setModels,
   historyReceived,
   setAssistantServerId,
   replaceMessages,
   removeConversationFromHistory,
   updateConversationTitle,
-  // NEW export
   setCurrentConversationId,
-  // NEW export
   setPendingPrompt,
 } = slice.actions
 

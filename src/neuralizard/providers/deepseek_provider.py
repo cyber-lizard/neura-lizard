@@ -124,8 +124,24 @@ class DeepSeekProvider(StreamingProviderMixin):
 
     # Optional: list models endpoint (if DeepSeek exposes)
     def list_models(self) -> list[str]:
-        # Could call /v1/models; keep simple for now
-        return [self.default_model]
+        """
+        List available DeepSeek model ids via /v1/models (OpenAI-compatible).
+        Falls back to [default_model] on error.
+        """
+        try:
+            resp = self._client.get("/v1/models", headers={"Accept": "application/json"})
+            if resp.status_code >= 400:
+                return [self.default_model] if getattr(self, "default_model", None) else []
+            payload = resp.json() or {}
+            items = payload.get("data") or []
+            names = [it.get("id") for it in items if isinstance(it, dict) and it.get("id")]
+            # ensure default present
+            if getattr(self, "default_model", None):
+                names.append(self.default_model)
+            # normalize/dedup
+            return sorted({n for n in names if isinstance(n, str) and n})
+        except Exception:
+            return [self.default_model] if getattr(self, "default_model", None) else []
 
     def close(self):
         try:

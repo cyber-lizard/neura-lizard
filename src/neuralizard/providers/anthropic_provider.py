@@ -101,3 +101,10 @@ class AnthropicProvider(StreamingProviderMixin):
                         break
         except Exception as e:
             yield f"[Stream error: {e}]"
+
+    def list_models(self) -> list[str]:
+        try:
+            resp = self.client.models.list()
+            return [m.id for m in getattr(resp, "data", [])]
+        except Exception as e:
+            raise RuntimeError(f"Anthropic list models error: {e}")

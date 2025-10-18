@@ -9,6 +9,22 @@ from .perplexity_provider import PerplexityProvider
 from ..config import settings
 from .base import Provider
 import os
+import time
+from typing import Dict, List, Tuple
+
+_DEFAULT_MODELS: dict[str, list[str]] = {
+    "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4.1-mini"],
+    "anthropic": ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest"],
+    "google": ["gemini-1.5-pro-latest", "gemini-1.5-flash-latest"],
+    "mistral": ["mistral-large-latest", "open-mistral-nemo"],
+    "cohere": ["command-r", "command-r-plus"],
+    "xai": ["grok-2", "grok-2-mini"],
+    "deepseek": ["sfsfdeepseek-chat", "deepseek-reasoner"],
+    "perplexity": ["sonar-pro", "sonar-medium-online", "sonar-small-online"],
+}
+
+# cache: name -> (timestamp, models)
+_MODEL_CACHE: Dict[str, Tuple[float, List[str]]] = {}
 
 def get_provider(name: str) -> Provider:
     n = (name or "openai").lower()
@@ -42,3 +58,22 @@ def get_available_providers() -> list[str]:
         "perplexity": settings.perplexity_api_key,
     }
     return [name for name, key in mapping.items() if key and str(key).strip()]
+
+def get_provider_models(name: str, use_cache: bool = True, ttl: float = 600.0) -> list[str]:
+    """
+    Return models for a provider by calling its list_models() if available.
+    Falls back to a small default list and caches results for ttl seconds.
+    """
+    key = (name or "").lower()
+
+    try:
+        prov = get_provider(key)
+        if hasattr(prov, "list_models"):
+            models = list(prov.list_models() or [])
+            return models
+        else:
+            models = _DEFAULT_MODELS.get(key, [])
+            return models
+    except Exception:
+        models = _DEFAULT_MODELS.get(key, [])
+        return models
