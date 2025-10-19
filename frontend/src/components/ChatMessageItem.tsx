@@ -6,6 +6,8 @@ export interface ChatMessageShape {
   role: "user" | "assistant" | "system"
   content: string
   serverId?: number
+  provider?: string
+  model?: string
 }
 
 interface Props {
@@ -49,6 +51,7 @@ function parseContentToBlocks(text: string): Array<
 
 export default function ChatMessageItem({ message, streaming, isLastAssistant }: Props) {
   const isAssistant = message.role !== "user"
+  console.log("Rendering message from", message.role, "with provider/model:", message.provider, message.model);
   const blocks = React.useMemo(() => parseContentToBlocks(message.content || ""), [message.content])
 
   return (
@@ -56,7 +59,9 @@ export default function ChatMessageItem({ message, streaming, isLastAssistant }:
       <div className={isAssistant ? "bg-white border rounded p-3 shadow-sm" : ""}>
         <div className="mb-1 flex items-center justify-between">
           <div className="text-xs font-medium text-neutral-500">
-            {message.role === "user" ? "You" : "Assistant"}
+            {message.role === "user"
+              ? "You"
+              : `Assistant${message.provider && message.model ? ` (${message.provider}, ${message.model})` : ""}`}
           </div>
         </div>
 

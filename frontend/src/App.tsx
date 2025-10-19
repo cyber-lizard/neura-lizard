@@ -88,7 +88,7 @@ export default function App() {
       />
 
       {/* Make inset take full width/height */}
-      <SidebarInset className="flex min-h-screen w-full flex-col pt-16">
+      <SidebarInset className="flex min-h-screen w-full flex-col">
         <AppHeader wsConnecting={wsConnecting} wsConnected={wsConnected} />
 
         <div

@@ -16,16 +16,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-export type ChatMessage = {
-  id: string
-  role: "user" | "assistant" | "system" | "tool"
-  content: string
-}
 export type StoredConversation = {
   id: string
   title: string
   updatedAt: number
-  messages: ChatMessage[]
 }
 
 type Props = {

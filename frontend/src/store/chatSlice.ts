@@ -16,6 +16,8 @@ export type ChatMessage = {
   role: "user" | "assistant" | "system"
   content: string
   serverId?: number // DB id set after "done"
+  provider?: string
+  model?: string
 }
 
 type ChatState = {
@@ -68,7 +70,7 @@ const slice = createSlice({
   reducers: {
     setPrompt(s, a: PayloadAction<string>) { s.prompt = a.payload },
     setProvider(s, a: PayloadAction<string>) { s.provider = a.payload },
-    setModel(s, a: PayloadAction<string | null>) { s.model = a.payload },
+    setModel(s, a: PayloadAction<string | null>) { console.log(a.payload);s.model = a.payload },
     clearAll(s) {
       s.prompt = ""
       s.messages = []
@@ -115,7 +117,7 @@ const slice = createSlice({
     setPendingPrompt(state, action: PayloadAction<string | null>) {
       state.pendingPrompt = action.payload
     },
-    replaceMessages(state, action: PayloadAction<Array<{ id: number | string; role: ChatMessage["role"]; content: string }>>) {
+    replaceMessages(state, action: PayloadAction<Array<{ id: number | string; role: ChatMessage["role"]; content: string; provider?: string; model?: string }>>) {
       state.currentAssistantId = null
       state.streaming = false
       state.messages = action.payload.map(m => ({
@@ -123,6 +125,8 @@ const slice = createSlice({
         role: m.role,
         content: m.content,
         serverId: Number(m.id),
+        provider: m.provider,
+        model: m.model,
       }))
     },
     removeConversationFromHistory(state, action: PayloadAction<string>) {
@@ -161,7 +165,6 @@ export const fetchModels = (provider?: string, refresh = false) =>
 export const setProviderAndFetch = (prov: string) => (dispatch: any) => {
   dispatch(setProvider(prov))
   // clear stale model+models before fetching
-  dispatch(setModel(null))
   dispatch(setModels([]))
   dispatch(fetchModels(prov, false)) // refresh to bypass cache
 }
@@ -225,6 +228,7 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
             const { chat: latest } = getState()
             // Auto-select first model if none or invalid
             if (!latest.model || !msg.models.includes(latest.model)) {
+              console.log("Auto-selecting model:", msg.models[0] || null)
               const first = msg.models[0] || null
               dispatch(setModel(first || null))
             }
@@ -279,6 +283,8 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
               id: m.id,
               role: m.role as ChatMessage["role"],
               content: m.content,
+              provider: m.provider,
+              model: m.model,
             }))
             dispatch(slice.actions.replaceMessages(mapped))
           }

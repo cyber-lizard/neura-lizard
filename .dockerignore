@@ -1,0 +1,10 @@
+.git
+__pycache__/
+*.pyc
+*.pyo
+*.pytest_cache
+.vscode
+.venv
+dist
+build
+frontend/node_modules
