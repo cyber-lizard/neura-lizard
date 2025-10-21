@@ -1,3 +1,6 @@
+import os
+os.environ["DB_URL"] = "sqlite:///:memory:"
+
 from neuralizard.db import init_db, session
 
 def test_init_db():

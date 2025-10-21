@@ -90,14 +90,22 @@ class MessageRating(Base):
 
 DB_URL = settings.db_url
 
-engine = create_engine(
-    DB_URL,
-    future=True,
-    echo=getattr(settings, "db_echo", False),
-    pool_pre_ping=True,
-    pool_size=getattr(settings, "db_pool_size", 5),
-    pool_timeout=getattr(settings, "db_pool_timeout", 30),
-)
+if DB_URL.startswith("sqlite://"):
+    engine = create_engine(
+        DB_URL,
+        future=True,
+        echo=getattr(settings, "db_echo", False),
+        pool_pre_ping=True,
+    )
+else:
+    engine = create_engine(
+        DB_URL,
+        future=True,
+        echo=getattr(settings, "db_echo", False),
+        pool_pre_ping=True,
+        pool_size=getattr(settings, "db_pool_size", 5),
+        pool_timeout=getattr(settings, "db_pool_timeout", 30),
+    )
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
 

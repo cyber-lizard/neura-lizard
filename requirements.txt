@@ -29,3 +29,6 @@ websockets
 psycopg[binary]>=3.1
 alembic>=1.13
 perplexityai
+# Testing
+pytest
+requests-mock
