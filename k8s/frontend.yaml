@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: neuralizard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          # Replace with your locally built image tag, e.g., neuralizard-frontend:local
+          image: neuralizard-frontend:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          # If you rebuild the frontend with a custom VITE_WS_URL at build time,
+          # no runtime env injection is needed since it's a static app.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: neuralizard
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: ClusterIP
