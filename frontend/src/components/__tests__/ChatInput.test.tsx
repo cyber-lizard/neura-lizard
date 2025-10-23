@@ -1,6 +1,13 @@
 import React from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
+
+// Stub ModelSelect to avoid Redux dependency in these unit tests
+vi.mock("../ModelSelect", () => ({
+  __esModule: true,
+  default: () => <div data-testid="model-select">ModelSelect</div>,
+}))
+
 import ChatInput from "../ChatInput"
 
 describe("ChatInput", () => {
@@ -98,7 +105,7 @@ describe("ChatInput", () => {
         wsConnected={true}
       />
     )
-    expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument()
 
     rerender(
       <ChatInput
@@ -111,6 +118,6 @@ describe("ChatInput", () => {
         wsConnected={true}
       />
     )
-    expect(screen.getByRole("button", { name: /streaming/i })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /stop/i })).toBeInTheDocument()
   })
 })

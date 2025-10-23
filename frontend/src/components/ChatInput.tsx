@@ -1,4 +1,5 @@
 import React from "react"
+import SendStopButton from "./SendStopButton"
 import ModelSelect from "./ModelSelect"
 
 type Props = {
@@ -36,29 +37,23 @@ export default function ChatInput({
           onKeyDown={e => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault()
-              onSubmit()
+              if (!streaming) {
+                onSubmit()
+              }
             }
           }}
         />
       </div>
 
       <div className="flex flex-col gap-2 w-48 items-end justify-end">
-        <button
-          type="submit"
-          disabled={!value.trim() || wsConnecting || streaming}
-          className="px-3 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50 w-full"
-        >
-          {wsConnected ? (streaming ? "Streaming..." : "Send") : "Connect"}
-        </button>
-        {streaming && (
-          <button
-            type="button"
-            onClick={onStop}
-            className="px-3 py-2 rounded bg-neutral-300 text-sm w-full"
-          >
-            Stop
-          </button>
-        )}
+        <SendStopButton
+          streaming={streaming}
+          wsConnecting={wsConnecting}
+          wsConnected={wsConnected}
+          hasValue={!!value.trim()}
+          onStop={onStop}
+          className="w-full"
+        />
         <div className="w-full mt-2 mt-auto">
           <ModelSelect disabled={wsConnecting || streaming} className="w-full" />
         </div>
