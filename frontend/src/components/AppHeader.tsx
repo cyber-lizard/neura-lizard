@@ -1,7 +1,7 @@
 import React from "react"
-import lizardImg from "@/assets/images/lizard.png"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ProviderSelect } from "./ProviderSelect"
+import Logo from "./Logo"
 
 type Props = {
   wsConnecting: boolean
@@ -14,7 +14,7 @@ export function AppHeader({ wsConnecting, wsConnected, showStatus = false }: Pro
     <div className="sticky top-0 z-20 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <header className="p-4 h-20 flex flex-wrap items-center gap-3">
         <SidebarTrigger className="-ml-1 mr-1 md:hidden" />
-        <img src={lizardImg} alt="Neuralizard" className="h-10 w-10" />
+        <Logo size="md" />
         <h1 className="text-xl">neuralizard_chat</h1>
         {showStatus && (
           <span className="block text-xs text-neutral-500">
