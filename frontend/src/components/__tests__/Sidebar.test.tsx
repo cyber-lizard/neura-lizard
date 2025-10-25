@@ -36,19 +36,16 @@ describe("Sidebar", () => {
       id: "c1",
       title: "First chat",
       updatedAt: new Date("2024-01-01T10:00:00Z").getTime(),
-      messages: [],
     },
     {
       id: "c2",
       title: "Second chat",
       updatedAt: new Date("2024-02-01T10:00:00Z").getTime(),
-      messages: [],
     },
     {
       id: "c3",
       title: "Third chat",
       updatedAt: new Date("2023-12-01T10:00:00Z").getTime(),
-      messages: [],
     },
   ]
 
@@ -149,16 +146,5 @@ describe("Sidebar", () => {
     expect(activeBtn).toHaveClass("bg-sidebar-accent")
   })
 
-  it("shows footer text", () => {
-    render(
-      <Sidebar
-        conversations={[]}
-        currentId=""
-        onNewChat={onNewChat}
-        onSelect={onSelect}
-        onDelete={onDelete}
-      />
-    )
-    expect(screen.getByText(/neuralizard/i)).toBeInTheDocument()
-  })
+  // Footer currently has no content; no test for footer text
 })

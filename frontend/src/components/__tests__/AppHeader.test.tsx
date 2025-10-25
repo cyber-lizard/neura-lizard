@@ -19,24 +19,24 @@ vi.mock("@/components/ui/sidebar", () => ({
 describe("AppHeader", () => {
   it("renders title, logo, provider select, and sidebar trigger", () => {
     render(<AppHeader wsConnecting={false} wsConnected={false} />)
-    expect(screen.getByText(/Neuralizard Chat/i)).toBeInTheDocument()
+    expect(screen.getByText(/neuralizard_chat/i)).toBeInTheDocument()
     expect(screen.getByAltText(/Neuralizard/i)).toBeInTheDocument()
     expect(screen.getByTestId("provider-select")).toBeInTheDocument()
     expect(screen.getByTestId("sidebar-trigger")).toBeInTheDocument()
   })
 
   it("shows Connecting... when wsConnecting", () => {
-    render(<AppHeader wsConnecting={true} wsConnected={false} />)
+    render(<AppHeader wsConnecting={true} wsConnected={false} showStatus />)
     expect(screen.getByText(/Connecting.../i)).toBeInTheDocument()
   })
 
   it("shows Connected when connected", () => {
-    render(<AppHeader wsConnecting={false} wsConnected={true} />)
+    render(<AppHeader wsConnecting={false} wsConnected={true} showStatus />)
     expect(screen.getByText(/Connected/i)).toBeInTheDocument()
   })
 
   it("shows Disconnected when neither connecting nor connected", () => {
-    render(<AppHeader wsConnecting={false} wsConnected={false} />)
+    render(<AppHeader wsConnecting={false} wsConnected={false} showStatus />)
     expect(screen.getByText(/Disconnected/i)).toBeInTheDocument()
   })
 })

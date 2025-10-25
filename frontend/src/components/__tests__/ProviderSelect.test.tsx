@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // Hoisted mutable chat state for useAppSelector mock
-const { mockChatState, setProviderMock } = vi.hoisted(() => ({
+const { mockChatState, setProviderAndFetchMock } = vi.hoisted(() => ({
   mockChatState: {
     value: {
       provider: "openai",
@@ -13,7 +13,7 @@ const { mockChatState, setProviderMock } = vi.hoisted(() => ({
       wsConnected: true,
     },
   },
-  setProviderMock: vi.fn((p: string) => ({ type: "setProvider", payload: p })),
+  setProviderAndFetchMock: vi.fn((p: string) => ({ type: "setProvider", payload: p })),
 }))
 
 // Mock dispatch
@@ -29,7 +29,7 @@ vi.mock("../../hooks", () => ({
 // Mock chatSlice using the same resolved path as the component (../store/chatSlice from src/components)
 vi.mock("../../store/chatSlice", () => ({
   __esModule: true,
-  setProvider: setProviderMock,
+  setProviderAndFetch: setProviderAndFetchMock,
 }))
 
 // Mock shadcn/ui building blocks used by the component
@@ -74,7 +74,7 @@ import ProviderSelect from "../ProviderSelect"
 describe("ProviderSelect", () => {
   beforeEach(() => {
     mockDispatch.mockClear()
-    setProviderMock.mockClear()
+    setProviderAndFetchMock.mockClear()
     mockChatState.value = {
       provider: "openai",
       providers: ["openai", "anthropic"],
@@ -101,7 +101,7 @@ describe("ProviderSelect", () => {
   it("dispatches setProvider when selecting an item", () => {
     render(<ProviderSelect />)
     fireEvent.click(screen.getByRole("option", { name: "anthropic" }))
-    expect(setProviderMock).toHaveBeenCalledWith("anthropic")
+    expect(setProviderAndFetchMock).toHaveBeenCalledWith("anthropic")
     expect(mockDispatch).toHaveBeenCalledWith({ type: "setProvider", payload: "anthropic" })
   })
 
@@ -114,7 +114,7 @@ describe("ProviderSelect", () => {
       wsConnected: true,
     }
     render(<ProviderSelect />)
-    expect(setProviderMock).toHaveBeenCalledWith("openai")
+    expect(setProviderAndFetchMock).toHaveBeenCalledWith("openai")
     expect(mockDispatch).toHaveBeenCalledWith({ type: "setProvider", payload: "openai" })
   })
 
