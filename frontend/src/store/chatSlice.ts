@@ -507,3 +507,10 @@ export const requestDeleteConversation = (id: string) => (_dispatch: any) => {
     try { activeWS.send(JSON.stringify({ type: "delete_conversation", id })) } catch {}
   }
 }
+
+// Thunk: rename a conversation via WS
+export const requestRenameConversation = (id: string, title: string) => (_dispatch: any) => {
+  if (activeWS && activeWS.readyState === WebSocket.OPEN) {
+    try { activeWS.send(JSON.stringify({ type: "rename_conversation", id, title })) } catch {}
+  }
+}

@@ -17,6 +17,8 @@ import {
   requestDeleteConversation,
   setCurrentConversationId,
   requestNewConversation, // add
+  requestRenameConversation,
+  updateConversationTitle,
 } from "./store/chatSlice"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -84,6 +86,11 @@ export default function App() {
             d(setCurrentConversationId(null))
             d(clearAll())
           }
+        }}
+        onRename={(id, title) => {
+          // optimistic update for snappy UI
+          d(updateConversationTitle({ id, title }))
+          d(requestRenameConversation(id, title))
         }}
       />
 

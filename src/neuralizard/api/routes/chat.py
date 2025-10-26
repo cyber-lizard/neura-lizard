@@ -335,6 +335,40 @@ async def chat_ws(ws: WebSocket):
                     await ws.send_json({"type": "error", "error": f"Delete failed: {e}"})
                 continue
 
+            # === Rename conversation ===
+            if t == "rename_conversation":
+                cid = data.get("id") or data.get("conversation_id")
+                raw_title = (data.get("title") or "")
+                title = str(raw_title).strip()
+                if not cid:
+                    await ws.send_json({"type": "error", "error": "Missing conversation id"})
+                    continue
+                try:
+                    conv_uuid = uuid.UUID(str(cid))
+                except Exception:
+                    await ws.send_json({"type": "error", "error": "Invalid conversation id"})
+                    continue
+                if not title:
+                    await ws.send_json({"type": "error", "error": "Title must not be empty"})
+                    continue
+                # Enforce max length (DB column String(200))
+                if len(title) > 200:
+                    title = title[:200].rstrip()
+                try:
+                    with session() as s:
+                        conv = s.get(Conversation, conv_uuid)
+                        if not conv:
+                            await ws.send_json({"type": "error", "error": "Conversation not found"})
+                            continue
+                        conv.title = title
+                        s.commit()
+                        # s.refresh(conv)  # not strictly needed for title
+                    # Reuse the same event type used by auto-title to keep the frontend simple
+                    await ws.send_json({"type": "conversation_title", "id": str(conv_uuid), "title": title})
+                except Exception as e:
+                    await ws.send_json({"type": "error", "error": f"Rename failed: {e}"})
+                continue
+
             # === Rate a message (vote/score/label/comment) ===
             if t in ("rate", "rating"):
                 mid = data.get("message_id") or data.get("id")
