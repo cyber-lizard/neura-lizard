@@ -2,6 +2,7 @@ import * as React from "react"
 import clsx from "clsx"
 import { MessageSquare, Plus, Trash2, MoreVertical, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import bg2 from "@/assets/images/button-bg.png"
 import { Input } from "@/components/ui/input"
 import {
   Sidebar as UISidebar,
@@ -84,13 +85,21 @@ export function Sidebar({
     <UISidebar collapsible="icon">
       <SidebarHeader className="p-2">
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2"
+          className="group relative w-full justify-start gap-2 border-0 rounded-lg text-white hover:text-white active:text-white focus:text-white bg-no-repeat bg-center bg-cover transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:outline-none overflow-hidden mt-4"
           onClick={onNewChat}
+          style={{
+            // Slight dark overlay improves contrast without hiding image
+            backgroundImage: `url(${bg2})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
         >
-          <Plus className="h-4 w-4" />
-          New chat
+          {/* subtle gloss on hover */}
+          <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-white/10" />
+          <Plus className="h-4 w-4 drop-shadow" strokeWidth={3}/>
+          <span className="relative">New chat</span>
         </Button>
       </SidebarHeader>
 

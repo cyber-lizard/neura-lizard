@@ -1,5 +1,6 @@
 import React from "react"
 import { ArrowUp, Square } from "lucide-react"
+import bg from "@/assets/images/button-bg.png"
 
 type Props = {
   streaming: boolean
@@ -34,16 +35,24 @@ export default function SendStopButton({
       disabled={disabled}
       aria-label={ariaLabel}
       className={
-        "px-3 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50 flex items-center justify-center " +
+        "group relative overflow-hidden px-3 py-2 rounded text-white text-sm disabled:opacity-50 flex items-center justify-center bg-no-repeat bg-center bg-cover " +
         className
       }
+      style={{
+        // Add a translucent overlay to improve contrast while keeping the image visible
+        backgroundImage: `url(${bg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
+      {/* subtle gloss on hover */}
+      <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100 bg-white/10" />
       {isConnect ? (
         "Connect"
       ) : isStreaming ? (
-        <Square className="h-4 w-4" />
+        <Square className="h-4 w-4" strokeWidth={3}/>
       ) : (
-        <ArrowUp className="h-4 w-4" />
+        <ArrowUp className="h-4 w-4" strokeWidth={3} />
       )}
     </button>
   )
