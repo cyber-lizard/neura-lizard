@@ -19,6 +19,7 @@ import {
   requestNewConversation, // add
   requestRenameConversation,
   updateConversationTitle,
+  replayConversation,
 } from "./store/chatSlice"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -116,9 +117,11 @@ export default function App() {
             onChange={(v) => d(setPrompt(v))}
             onSubmit={() => submit()}
             onStop={() => d(stopStreamAction())}
+            onReplay={() => d(replayConversation())}
             streaming={streaming}
             wsConnecting={wsConnecting}
             wsConnected={wsConnected}
+            hasMessages={(messages || []).length > 0}
           />
         </div>
       </SidebarInset>

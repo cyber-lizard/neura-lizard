@@ -144,6 +144,8 @@ const slice = createSlice({
 const WS_URL = (import.meta as any).env.VITE_WS_URL || "ws://localhost:8001/chat/ws"
 let activeWS: WebSocket | null = null
 let pendingModelsRequest: { provider: string; refresh: boolean } | null = null
+// Module-level replay queue to sequence user prompts during replay
+let replayQueue: { prompts: string[]; index: number } | null = null
 
 // Fetch models for a provider over WS
 export const fetchModels = (provider?: string, refresh = false) =>
@@ -251,6 +253,21 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
           }
           dispatch(stopStreaming())
           dispatch(finalizeAssistant())
+
+          // If we are replaying, send the next prompt (if any)
+          if (replayQueue) {
+            const nextIndex = replayQueue.index + 1
+            if (nextIndex < replayQueue.prompts.length) {
+              replayQueue.index = nextIndex
+              const nextPrompt = replayQueue.prompts[nextIndex]
+              // Set next prompt and send over existing conversation
+              dispatch(setPrompt(nextPrompt))
+              dispatch(sendPromptOverWS())
+            } else {
+              // Finished replay
+              replayQueue = null
+            }
+          }
           break
         case "error":
           dispatch(setError(msg.error || "WS error"))
@@ -315,8 +332,8 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
               } catch {}
               dispatch(slice.actions.setPendingPrompt(null))
             }
-            // Optionally hydrate messages/history
-            try { activeWS?.send(JSON.stringify({ type: "conversation", id: msg.id })) } catch {}
+            // Hydrate history; avoid requesting full conversation immediately to prevent
+            // overwriting locally queued user message during creation race conditions.
             try { activeWS?.send(JSON.stringify({ type: "history", limit: 50, offset: 0 })) } catch {}
           }
           break
@@ -332,6 +349,7 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
     dispatch(setError("WebSocket error"))
     dispatch(stopStreaming())
     dispatch(finalizeAssistant())
+    replayQueue = null
   }
 
   ws.onclose = () => {
@@ -339,6 +357,7 @@ export const connectWS = () => (dispatch: any, getState: () => { chat: ChatState
     dispatch(stopStreaming())
     dispatch(finalizeAssistant())
     if (activeWS === ws) activeWS = null
+    replayQueue = null
   }
 }
 
@@ -421,6 +440,8 @@ export const sendPromptOverWS = () => (dispatch: any, getState: () => { chat: Ch
 
 export const stopStreamAction = () => (dispatch: any) => {
   dispatch(stopStreaming())
+  // Cancel any ongoing replay sequence when user stops streaming
+  replayQueue = null
 }
 
 export const disconnectWSAction = () => (dispatch: any) => {
@@ -431,6 +452,29 @@ export const disconnectWSAction = () => (dispatch: any) => {
   dispatch(stopStreaming())
   dispatch(wsClosed())
   dispatch(finalizeAssistant())
+}
+
+// Start a replay: create a new chat and resend all user messages sequentially
+export const replayConversation = () => (dispatch: any, getState: () => { chat: ChatState }) => {
+  const { chat } = getState()
+  // Extract only user prompts in order
+  const prompts = (chat.messages || [])
+    .filter(m => m.role === "user")
+    .map(m => m.content)
+    .filter(Boolean)
+
+  if (!prompts.length) return
+
+  // Initialize queue
+  replayQueue = { prompts, index: 0 }
+
+  // Ensure this runs in a brand new conversation
+  dispatch(clearAll())
+  dispatch(setCurrentConversationId(null))
+
+  // Use existing flow to auto-create and send first prompt
+  dispatch(setPrompt(prompts[0]))
+  dispatch(sendPromptOverWS())
 }
 
 export const {
