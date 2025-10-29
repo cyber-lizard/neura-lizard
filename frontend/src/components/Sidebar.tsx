@@ -1,6 +1,7 @@
 import * as React from "react"
 import clsx from "clsx"
-import { MessageSquare, Plus, Trash2, MoreVertical, Pencil } from "lucide-react"
+import { Plus, Trash2, MoreVertical, Pencil } from "lucide-react"
+import bubble from "@/assets/images/bubble.png"
 import { Button } from "@/components/ui/button"
 import bg2 from "@/assets/images/button-bg.png"
 import { Input } from "@/components/ui/input"
@@ -124,7 +125,7 @@ export function Sidebar({
                           )}
                         >
                           <div className="flex w-full items-center gap-2" onClick={(e) => { e.preventDefault(); e.stopPropagation() }}>
-                            <MessageSquare className="h-4 w-4" />
+                            <img src={bubble} alt="" className="h-4 w-4 object-contain" />
                             <div className="min-w-0 flex-1">
                               <Input
                                 ref={editRef}
@@ -154,7 +155,7 @@ export function Sidebar({
                           )}
                           onClick={() => onSelect(c.id)}
                         >
-                          <MessageSquare className="h-4 w-4" />
+                          <img src={bubble} alt="" className="h-4 w-4 object-contain" />
                           <div className="min-w-0 flex-1">
                             <div className="truncate">
                               {c.title || "New chat"}
