@@ -90,7 +90,13 @@ const slice = createSlice({
     startAssistantMessage(s) {
       const id = genId()
       s.currentAssistantId = id
-      s.messages.push({ id, role: "assistant", content: "" })
+      s.messages.push({
+        id,
+        role: "assistant",
+        content: "",
+        provider: s.provider,
+        model: s.model ?? undefined,
+      })
     },
     setAssistantServerId(s, a: PayloadAction<number>) {
       if (!s.currentAssistantId) return
