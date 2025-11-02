@@ -1,5 +1,21 @@
+
 import React from "react"
+import { Copy } from "lucide-react"
 import { MessageRating } from "./MessageRating"
+
+function copyToClipboard(text: string) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text)
+  } else {
+    // fallback for older browsers
+    const textarea = document.createElement("textarea")
+    textarea.value = text
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand("copy")
+    document.body.removeChild(textarea)
+  }
+}
 
 export interface ChatMessageShape {
   id: string
@@ -68,14 +84,24 @@ export default function ChatMessageItem({ message, streaming, isLastAssistant }:
         <div className="space-y-3">
           {blocks.map((b, i) =>
             b.type === "code" ? (
-              <pre
-                key={`code-${i}`}
-                className="max-w-full overflow-x-auto rounded border bg-neutral-50 p-3 text-xs leading-relaxed"
-              >
-                <code className={b.lang ? `language-${b.lang}` : undefined}>
-                  {b.content}
-                </code>
-              </pre>
+              <div key={`code-${i}`} className="relative group">
+                <pre
+                  className="max-w-full overflow-x-auto rounded border bg-neutral-50 p-3 text-xs leading-relaxed"
+                >
+                  <code className={b.lang ? `language-${b.lang}` : undefined}>
+                    {b.content}
+                  </code>
+                </pre>
+                <button
+                  type="button"
+                  className="absolute top-2 right-2 opacity-70 group-hover:opacity-100 bg-neutral-200 hover:bg-neutral-300 text-xs px-2 py-1 rounded border shadow flex items-center gap-1"
+                  onClick={() => copyToClipboard(b.content)}
+                  aria-label="Copy code"
+                >
+                  <Copy className="h-4 w-4 text-neutral-600" strokeWidth={1.5} />
+                  <span>Copy</span>
+                </button>
+              </div>
             ) : (
               <div key={`text-${i}`} className="whitespace-pre-wrap text-sm">
                 {b.content}
