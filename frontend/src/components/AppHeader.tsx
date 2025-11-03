@@ -15,7 +15,7 @@ export function AppHeader({ wsConnecting, wsConnected, showStatus = false }: Pro
       <header className="p-4 h-20 flex flex-wrap items-center gap-3">
         <SidebarTrigger className="-ml-1 mr-1 md:hidden" />
         <Logo size="md" />
-        <h1 className="text-xl">neuralizard_chat</h1>
+        <h1 className="text-xl">neura_lizard</h1>
         {showStatus && (
           <span className="block text-xs text-neutral-500">
             {wsConnecting ? "Connecting..." : wsConnected ? "Connected" : "Disconnected"}

@@ -19,7 +19,7 @@ vi.mock("@/components/ui/sidebar", () => ({
 describe("AppHeader", () => {
   it("renders title, logo, provider select, and sidebar trigger", () => {
     render(<AppHeader wsConnecting={false} wsConnected={false} />)
-    expect(screen.getByText(/neuralizard_chat/i)).toBeInTheDocument()
+    expect(screen.getByText(/neura_lizard/i)).toBeInTheDocument()
     expect(screen.getByAltText(/Neuralizard/i)).toBeInTheDocument()
     expect(screen.getByTestId("provider-select")).toBeInTheDocument()
     expect(screen.getByTestId("sidebar-trigger")).toBeInTheDocument()
